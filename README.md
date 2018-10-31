@@ -248,6 +248,19 @@ page.update_attributes title: "Welcome"
 
 Page.find("welcome") == Page.find("home") # => true
 ```
+Set the value for `histroy_limit: n` to leave the last `n`-slugs
+
+```ruby
+class Page
+  include Mongoid::Document
+  include Mongoid::Slug
+
+  field :title
+
+  slug :title, history: true, histroy_limit: 3
+end
+```
+
 
 ### Reserved Slugs
 
