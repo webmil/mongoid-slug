@@ -79,7 +79,7 @@ module Mongoid
         self.slug_reserved_words   = options[:reserve] || Set.new(%w[new edit])
         self.slugged_attributes    = fields.map(&:to_s)
         self.slug_history          = options[:history]
-        self.slug_history_limit    = options[:history] && options[:history_limit].is_a?(Integer) ? options[:history_limit] : nil
+        self.slug_history_limit    = options[:history] ? options[:history_limit] : nil
         self.slug_by_model_type    = options[:by_model_type]
         self.slug_max_length       = options.key?(:max_length) ? options[:max_length] : MONGO_INDEX_KEY_LIMIT_BYTES - 32
 
@@ -330,7 +330,9 @@ module Mongoid
     end
 
     def history_memory(slugs)
-      slugs.shift(slugs.count - slug_history_limit) if slugs.count > slug_history_limit
+      if slug_history_limit.is_a?(Integer) && slug_history_limit > 0 && slugs.count > slug_history_limit
+        slugs.shift(slugs.count - slug_history_limit)
+      end
       slugs
     end
   end

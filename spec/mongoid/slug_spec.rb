@@ -452,6 +452,21 @@ module Mongoid
           expect(car.slugs.count).to eq 4
         end
       end
+
+      context 'like 0' do
+        let(:company) { Company.create(name: 'Apple') }
+
+        before(:each) do
+          3.times do |i|
+            company.name = "Company #{i}"
+            company.save
+          end
+        end
+
+        it 'does not cut slugs histroy' do
+          expect(company.slugs.count).to eq 4
+        end
+      end
     end
 
     context 'when slug is scoped by a reference association' do
