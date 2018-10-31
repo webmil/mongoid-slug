@@ -421,6 +421,39 @@ module Mongoid
       end
     end
 
+    context 'when :history_limit is passed as an argument' do
+      context 'like integer 3 with :history true' do
+        let(:story) { Story.create(title: 'First story from old Bob') }
+
+        before(:each) do
+          3.times do |i|
+            story.title = "Story number #{i} form old Bob"
+            story.save
+          end
+        end
+
+        it 'cut slugs history to last 3 slugs' do
+          expect(story.slugs.count).to eq 3
+          expect(story.slugs).to_not include('first-story-from-old-bob')
+        end
+      end
+
+      context 'like not integer' do
+        let(:car) { Car.create(model: 'Audi') }
+
+        before(:each) do
+          3.times do |i|
+            car.model = "Car model #{i}"
+            car.save
+          end
+        end
+
+        it 'does not cut slugs histroy' do
+          expect(car.slugs.count).to eq 4
+        end
+      end
+    end
+
     context 'when slug is scoped by a reference association' do
       let(:author) do
         book.authors.create(first_name: 'Gilles', last_name: 'Deleuze')

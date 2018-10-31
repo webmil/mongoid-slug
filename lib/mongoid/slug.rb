@@ -20,6 +20,7 @@ module Mongoid
                      :slugged_attributes,
                      :slug_url_builder,
                      :slug_history,
+                     :slug_history_limit,
                      :slug_by_model_type,
                      :slug_max_length
 
@@ -78,6 +79,7 @@ module Mongoid
         self.slug_reserved_words   = options[:reserve] || Set.new(%w[new edit])
         self.slugged_attributes    = fields.map(&:to_s)
         self.slug_history          = options[:history]
+        self.slug_history_limit    = options[:history] && options[:history_limit].is_a?(Integer) ? options[:history_limit] : nil
         self.slug_by_model_type    = options[:by_model_type]
         self.slug_max_length       = options.key?(:max_length) ? options[:max_length] : MONGO_INDEX_KEY_LIMIT_BYTES - 32
 
@@ -188,6 +190,7 @@ module Mongoid
 
       if !!slug_history && _slugs.is_a?(Array)
         append_slug(new_slug)
+        history_memory(_slugs) unless slug_history_limit.blank?
       else
         self._slugs = [new_slug]
       end
@@ -270,6 +273,7 @@ module Mongoid
         # but the default locale is. In this situation, self._slugs falls back to the default
         # which is undesired
         current_slugs = _slugs_translations.fetch(I18n.locale.to_s, [])
+
         current_slugs << value
         self._slugs_translations = _slugs_translations.merge(I18n.locale.to_s => current_slugs)
       else
@@ -323,6 +327,11 @@ module Mongoid
 
     def pre_slug_string
       slugged_attributes.map { |f| send f }.join ' '
+    end
+
+    def history_memory(slugs)
+      slugs.shift(slugs.count - slug_history_limit) if slugs.count > slug_history_limit
+      slugs
     end
   end
 end
